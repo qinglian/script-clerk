@@ -2,7 +2,7 @@
   "name": "场记系统 - Script Clerk",
   "short_name": "场记系统",
   "description": "专业的场记单管理工具，支持离线使用",
-  "start_url": "/",
+  "start_url": "/script-clerk/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#304156",

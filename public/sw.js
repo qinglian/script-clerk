@@ -1,9 +1,10 @@
-﻿const CACHE_NAME = 'script-clerk-v2';
+const CACHE_NAME = 'script-clerk-v3';
+const BASE_PATH = '/script-clerk';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/vite.svg'
+  `${BASE_PATH}/`,
+  `${BASE_PATH}/index.html`,
+  `${BASE_PATH}/manifest.json`,
+  `${BASE_PATH}/vite.svg`
 ];
 
 // 安装事件 - 缓存静态资源
@@ -41,8 +42,8 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 对于静态资源（JS、CSS、图片），使用 Cache First
-  if (event.request.destination === 'script' || 
-      event.request.destination === 'style' || 
+  if (event.request.destination === 'script' ||
+      event.request.destination === 'style' ||
       event.request.destination === 'image' ||
       event.request.destination === 'font') {
     event.respondWith(
@@ -61,7 +62,7 @@ self.addEventListener('fetch', (event) => {
           return response;
         }).catch(() => {
           // 离线时返回缓存的 index.html
-          return caches.match('/index.html');
+          return caches.match(`${BASE_PATH}/index.html`);
         });
       })
     );
@@ -89,7 +90,7 @@ self.addEventListener('fetch', (event) => {
           }
           // 对于导航请求，返回缓存的 index.html
           if (event.request.mode === 'navigate') {
-            return caches.match('/index.html');
+            return caches.match(`${BASE_PATH}/index.html`);
           }
           return new Response('离线', { status: 503 });
         });
