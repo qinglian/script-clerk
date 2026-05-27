@@ -1,0 +1,55 @@
+{
+  "name": "script-clerk",
+  "version": "1.0.0",
+  "description": "Script Clerk - 专业的影视场记管理软件",
+  "author": "Script Clerk Team",
+  "private": true,
+  "main": "electron-main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run build && electron-builder --win portable"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "element-plus": "^2.9.0",
+    "uuid": "^14.0.0",
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "concurrently": "^8.2.0",
+    "electron": "^42.2.0",
+    "electron-builder": "^26.8.1",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0",
+    "vue-tsc": "^2.0.0",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.scriptclerk.app",
+    "productName": "Script Clerk",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron-main.cjs"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "Script-Clerk-Portable.exe"
+    }
+  }
+}
