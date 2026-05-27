@@ -4,7 +4,6 @@ import 'element-plus/dist/index.css'
 import ElementPlusIconsVue from '@element-plus/icons-vue'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import App from './App.vue'
-import { usePWAInstall } from './composables/usePWAInstall'
 import './assets/main.css'
 
 // 注册 Service Worker
@@ -27,18 +26,3 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 app.use(ElementPlus, { locale: zhCn })
 app.mount('#app')
-
-// 初始化 PWA 安装功能
-const { isInstallable, installApp } = usePWAInstall()
-
-// 暴露 installApp 到全局，方便在组件中调用
-window.addEventListener('load', () => {
-  ;(window as any).installPWA = () => {
-    if (isInstallable.value) {
-      installApp()
-    } else {
-      // 如果没有触发 beforeinstallprompt，尝试打开manifest
-      window.open(`${basePath}manifest.json`, '_blank')
-    }
-  }
-})
