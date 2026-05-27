@@ -8,7 +8,7 @@
   "theme_color": "#304156",
   "icons": [
     {
-      "src": "/vite.svg",
+      "src": "/script-clerk/vite.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
