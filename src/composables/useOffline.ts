@@ -1,4 +1,4 @@
-﻿import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 export function useOffline() {
   const isOffline = ref(!navigator.onLine)
