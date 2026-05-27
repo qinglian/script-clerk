@@ -182,4 +182,3 @@ initStorage()
 
 ---
 
-Made with ❤️ for filmmakers
