@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="script-form">
     <!-- 上一条记录摘要（悬浮 sticky，不随页面滚动隐藏） -->
     <div v-if="!isEdit && lastRecord" class="sticky-summary-wrapper">
@@ -65,7 +65,7 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <el-form-item label="场景号" prop="sceneNumber">
-              <el-input v-model="form.sceneNumber" placeholder="如：A001" />
+              <el-input ref="sceneNumberInput" v-model="form.sceneNumber" placeholder="如：A001" />
             </el-form-item>
           </el-col>
           <el-col :span="6">
@@ -187,24 +187,38 @@
         <template #header>
           <div class="card-header">
             <span>🎥🎤 设备与文件编码</span>
-            <el-button type="primary" text @click="addEquipment">+ 添加设备</el-button>
           </div>
         </template>
 
         <div v-if="equipmentList.length === 0" class="empty-tip">
-          暂无设备记录，点击「+ 添加设备」添加摄像机或录音设备
+          暂无设备，请在项目设置中配置机位绑定
         </div>
 
         <div
           v-for="(eq, idx) in equipmentList"
           :key="eq.id"
           class="equipment-row"
+          :class="{ 'disabled-row': !eq.enabled }"
         >
-          <!-- 单行布局：类型/标识/景别/前缀/文件名/文件编码/换卡/删除 -->
+          <!-- 单行布局：启用/换卡/类型/标识/景别/前缀/文件名/文件编码 -->
           <el-row :gutter="0" class="equipment-row-inner">
+            <el-col :span="2">
+              <el-form-item class="compact-item" style="margin-top: 22px">
+                <el-checkbox v-model="eq.enabled" size="small">
+                  <span :class="{ 'disabled-text': !eq.enabled }">{{ eq.enabled ? '启用' : '禁用' }}</span>
+                </el-checkbox>
+              </el-form-item>
+            </el-col>
+            <el-col :span="2">
+              <el-form-item class="compact-item" style="margin-top: 22px">
+                <el-checkbox v-model="eq.changeCard" size="small" @change="onChangeCard(idx)" :disabled="!eq.enabled">
+                  <span :class="{ 'change-card-tag': eq.changeCard, 'disabled-text': !eq.enabled }">换卡</span>
+                </el-checkbox>
+              </el-form-item>
+            </el-col>
             <el-col :span="3">
               <el-form-item label="类型" :prop="`equipment.${idx}.type`" class="compact-item">
-                <el-select v-model="eq.type" placeholder="类型" size="small" @change="onEquipmentTypeChange(idx)" style="width: 100%">
+                <el-select v-model="eq.type" placeholder="类型" size="small" @change="onEquipmentTypeChange(idx)" style="width: 100%" :disabled="!eq.enabled">
                   <el-option label="摄像机" value="camera" />
                   <el-option label="录音设备" value="audio" />
                 </el-select>
@@ -212,14 +226,14 @@
             </el-col>
             <el-col :span="3">
               <el-form-item label="标识" :prop="`equipment.${idx}.label`" class="compact-item">
-                <el-select v-model="eq.label" placeholder="机位" size="small" clearable @change="onLabelChange(idx)" style="width: 100%">
+                <el-select v-model="eq.label" placeholder="机位" size="small" clearable @change="onLabelChange(idx)" style="width: 100%" :disabled="!eq.enabled">
                   <el-option v-for="b in filteredBindings(eq.type)" :key="b.id" :label="b.label" :value="b.label" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col v-if="eq.type === 'camera'" :span="3">
               <el-form-item label="景别" :prop="`equipment.${idx}.shotSize`" class="compact-item">
-                <el-select v-model="eq.shotSize" placeholder="景别" size="small" clearable @change="tryGenerateFileCode(idx)" style="width: 100%">
+                <el-select v-model="eq.shotSize" placeholder="景别" size="small" clearable @change="tryGenerateFileCode(idx)" style="width: 100%" :disabled="!eq.enabled">
                   <el-option label="全景" value="全景" />
                   <el-option label="中景" value="中景" />
                   <el-option label="近景" value="近景" />
@@ -234,7 +248,7 @@
             </el-col>
             <el-col :span="3">
               <el-form-item label="前缀" :prop="`equipment.${idx}.prefix`" class="compact-item">
-                <el-select v-model="eq.prefix" placeholder="前缀" size="small" clearable @change="onPrefixChange(idx, eq.prefix)" style="width: 100%">
+                <el-select v-model="eq.prefix" placeholder="前缀" size="small" clearable @change="onPrefixChange(idx, eq.prefix)" style="width: 100%" :disabled="!eq.enabled">
                   <el-option v-for="pf in availablePrefixes(eq)" :key="pf" :label="pf" :value="pf" />
                   <el-divider style="margin: 4px 0" />
                   <el-option label="新建前缀" value="__ADD_NEW_PREFIX__" />
@@ -244,29 +258,15 @@
             <el-col :span="4">
               <el-form-item label="文件名" :prop="`equipment.${idx}.fileName`" class="compact-item">
                 <div class="file-name-compact">
-                  <el-button size="small" @click="adjustFileName(idx, -1)" class="adj-btn" circle><el-icon><Minus /></el-icon></el-button>
-                  <el-input v-model="eq.fileName" size="small" placeholder="001" @blur="onFileNameBlur(idx)" style="width: 60px" />
-                  <el-button size="small" @click="adjustFileName(idx, 1)" class="adj-btn" circle><el-icon><Plus /></el-icon></el-button>
+                  <el-button size="small" @click="adjustFileName(idx, -1)" class="adj-btn" circle :disabled="!eq.enabled"><el-icon><Minus /></el-icon></el-button>
+                  <el-input v-model="eq.fileName" size="small" placeholder="001" @blur="onFileNameBlur(idx)" style="width: 60px" :disabled="!eq.enabled" />
+                  <el-button size="small" @click="adjustFileName(idx, 1)" class="adj-btn" circle :disabled="!eq.enabled"><el-icon><Plus /></el-icon></el-button>
                 </div>
               </el-form-item>
             </el-col>
             <el-col :span="3">
               <el-form-item label="文件编码" :prop="`equipment.${idx}.fileCode`" class="compact-item">
-                <el-input v-model="eq.fileCode" size="small" placeholder="自动" readonly />
-              </el-form-item>
-            </el-col>
-            <el-col v-if="eq.type === 'camera'" :span="2">
-              <el-form-item class="compact-item" style="margin-top: 22px">
-                <el-checkbox v-model="eq.changeCard" size="small" @change="onChangeCard(idx)">
-                  <span :class="{ 'change-card-tag': eq.changeCard }">换卡</span>
-                </el-checkbox>
-              </el-form-item>
-            </el-col>
-            <el-col :span="2">
-              <el-form-item class="compact-item" style="margin-top: 22px">
-                <el-button type="danger" text size="small" @click="removeEquipment(idx)">
-                  <el-icon><Delete /></el-icon> 删除
-                </el-button>
+                <el-input v-model="eq.fileCode" size="small" placeholder="自动" readonly :disabled="!eq.enabled" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -287,7 +287,7 @@
     </el-form>
 
     <!-- 换卡时新建前缀弹窗 -->
-    <el-dialog v-model="changeCardDialogVisible" title="📋 换卡 — 新建前缀" width="400px" append-to-body>
+    <el-dialog v-model="changeCardDialogVisible" title="📋 换卡 — 新建前缀" width="400px" append-to-body @close="onChangeCardDialogClose">
       <p style="margin-bottom: 12px; color: #606266;">
         为「{{ changeCardCurrentLabel }}」新建前缀（换卡后文件编码从头开始）：
       </p>
@@ -297,7 +297,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="changeCardDialogVisible = false">取消</el-button>
+        <el-button @click="cancelChangeCard">取消</el-button>
         <el-button type="primary" @click="confirmChangeCard">确认换卡</el-button>
       </template>
     </el-dialog>
@@ -343,11 +343,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { Delete, Plus, Minus } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
+import { Plus, Minus } from '@element-plus/icons-vue'
+import { ElMessage, ElNotification } from 'element-plus'
 import { useScriptStore, addPrefixToBinding } from '../stores/scriptStore'
-import type { ScriptRecord, EquipmentRecord, Project } from '../types/script'
+import type { ScriptRecord, EquipmentRecord, Project, CameraBinding } from '../types/script'
 import { v4 as uuidv4 } from 'uuid'
 
 const props = defineProps<{
@@ -364,6 +364,7 @@ const store = useScriptStore()
 const formRef = ref()
 const changeCardFormRef = ref()
 const addPrefixFormRef = ref()
+const sceneNumberInput = ref<HTMLInputElement | null>(null)
 
 const isEdit = computed(() => !!props.record)
 
@@ -387,6 +388,72 @@ const form = reactive({
 const equipmentList = reactive<EquipmentRecord[]>([])
 
 const submitting = ref(false)
+
+// 从项目机位绑定生成设备列表
+function initEquipmentFromBindings() {
+  const project = getProject()
+  if (!project || !project.cameraBindings || project.cameraBindings.length === 0) {
+    equipmentList.splice(0, equipmentList.length)
+    return
+  }
+
+  // 保存当前设备的启用状态（如果有的话）
+  const currentEnabledStatus = new Map<string, boolean>()
+  for (const eq of equipmentList) {
+    if (eq.label) {
+      currentEnabledStatus.set(eq.label, eq.enabled ?? true)
+    }
+  }
+
+  // 按机位绑定顺序生成设备列表
+  const bindings = project.cameraBindings
+  const newEquipment: EquipmentRecord[] = bindings.map((binding: CameraBinding) => {
+    // 检查上一条记录中该设备的启用状态
+    let enabled = true // 默认启用
+    
+    // 如果有上一条记录，参考上一条记录中该设备的启用状态
+    if (lastRecord.value?.equipment) {
+      const lastEq = lastRecord.value.equipment.find(e => e.label === binding.label)
+      if (lastEq) {
+        enabled = lastEq.enabled ?? true
+      }
+    }
+    
+    // 如果当前已有该设备的启用状态，优先使用（保存后重置表单时）
+    if (currentEnabledStatus.has(binding.label)) {
+      enabled = currentEnabledStatus.get(binding.label)!
+    }
+    
+    // 默认前缀：先查找历史记录中该设备标识最后一次使用的前缀，否则用绑定中的第一个前缀
+    let prefix = getLastPrefixForDevice(binding.label)
+    if (!prefix && binding.prefixes) {
+      prefix = binding.prefixes.split(',')[0].trim()
+    }
+    // 查找历史记录中该设备标识+前缀的最大文件名
+    const lastFileName = getLastFileNameForDevice(binding.label, prefix)
+    const nextFileNum = parseInt(lastFileName || '0', 10) + 1
+    
+    return {
+      id: uuidv4(),
+      type: binding.type,
+      label: binding.label,
+      prefix: prefix,
+      shotSize: '',
+      fileName: String(nextFileNum).padStart(3, '0'),
+      fileCode: '',
+      changeCard: false,
+      remark: '',
+      enabled: enabled,
+    }
+  })
+
+  equipmentList.splice(0, equipmentList.length, ...newEquipment)
+  
+  // 初始化后自动尝试生成文件编码
+  for (let i = 0; i < equipmentList.length; i++) {
+    tryGenerateFileCode(i)
+  }
+}
 const lastRecord = ref<ScriptRecord | null>(null)
 
 // 表单数据持久化 key
@@ -399,9 +466,11 @@ function restoreFormFromStorage() {
     if (saved) {
       const data = JSON.parse(saved)
       if (data.projectId === props.projectId && !props.record) {
-        // 恢复表单
         Object.assign(form, data.form)
-        equipmentList.splice(0, equipmentList.length, ...(data.equipment || []))
+        // 恢复时保留 enabled 状态
+        if (data.equipment && data.equipment.length > 0) {
+          equipmentList.splice(0, equipmentList.length, ...(data.equipment || []))
+        }
         console.log('[Form] 已从本地恢复未保存的表单数据')
       }
     }
@@ -452,7 +521,6 @@ function isPresetSelected(field: string, value: string): boolean {
 // 初始化表单（新建/编辑）
 function initForm() {
   if (props.record) {
-    // 编辑模式：从 record 恢复
     Object.assign(form, {
       projectId: props.record.projectId,
       date: props.record.date,
@@ -468,43 +536,110 @@ function initForm() {
       cameraNote: props.record.cameraNote,
       note: props.record.note,
     })
+    // 编辑模式：直接使用记录中的设备数据
     equipmentList.splice(0, equipmentList.length, ...JSON.parse(JSON.stringify(props.record.equipment || [])))
   } else {
-    // 新建模式：尝试从本地恢复，否则从 lastRecord 继承
     restoreFormFromStorage()
-    if (equipmentList.length === 0 && lastRecord.value?.equipment) {
-      // 从 lastRecord 继承设备
+    // 如果没有从本地恢复设备数据，则从项目绑定初始化
+    if (equipmentList.length === 0) {
+      initEquipmentFromBindings()
+    }
+    // 如果有上一条记录，继承启用的设备
+    if (lastRecord.value?.equipment) {
       inheritFromLastRecord()
     }
-    // 继承场景号/镜号（仅当本地无保存值时）
     if (lastRecord.value) {
       if (!form.sceneNumber) form.sceneNumber = lastRecord.value.sceneNumber || ''
       if (!form.shotNumber) form.shotNumber = lastRecord.value.shotNumber || ''
+      
+      // 新增：如果场景号和镜号相同，条数自动+1
+      if (form.sceneNumber === lastRecord.value.sceneNumber && form.shotNumber === lastRecord.value.shotNumber) {
+        form.takeCount = lastRecord.value.takeCount + 1
+      }
     }
   }
 }
 
-// 从 lastRecord 继承设备信息
-function inheritFromLastRecord() {
-  if (!lastRecord.value?.equipment) return
-  equipmentList.splice(0, equipmentList.length)
-  for (const lastEq of lastRecord.value.equipment) {
-    const newFileName = String(parseInt(lastEq.fileName || '0', 10) + 1).padStart(3, '0')
-    equipmentList.push({
-      id: uuidv4(),
-      type: lastEq.type,
-      label: lastEq.label,
-      prefix: lastEq.prefix,
-      shotSize: lastEq.shotSize || '',
-      fileName: newFileName,
-      fileCode: '',
-      changeCard: false,
-      remark: '',
-    })
+/**
+ * 获取某个设备标识在历史记录中的最大文件名
+ * @param label 设备标识
+ * @returns 最大文件名（数字字符串），如果没有记录则返回 '000'
+ */
+function getLastFileNameForDevice(label: string, prefix: string): string {
+  const allRecords = store.getRecords(props.projectId)
+  let maxFileNum = 0
+
+  for (const record of allRecords) {
+    if (record.equipment && record.equipment.length > 0) {
+      for (const eq of record.equipment) {
+        if (eq.label === label && eq.prefix === prefix && eq.fileName) {
+          const num = parseInt(eq.fileName, 10)
+          if (!isNaN(num) && num > maxFileNum) {
+            maxFileNum = num
+          }
+        }
+      }
+    }
   }
-  // 重新生成 fileCode
+
+  return String(maxFileNum).padStart(3, '0')
+}
+
+/**
+ * 获取某个设备标识在历史记录中最后一次使用的前缀
+ * @param label 设备标识
+ * @returns 最后一次使用的前缀，如果没有记录则返回空字符串
+ */
+function getLastPrefixForDevice(label: string): string {
+  const allRecords = store.getRecords(props.projectId)
+  let lastPrefix = ''
+  let lastDate = ''
+
+  for (const record of allRecords) {
+    if (record.equipment && record.equipment.length > 0) {
+      for (const eq of record.equipment) {
+        if (eq.label === label && eq.prefix) {
+          // 简单处理：取最后一条记录的前缀（假设记录按时间顺序添加）
+          if (!lastDate || record.createdAt >= lastDate) {
+            lastPrefix = eq.prefix
+            lastDate = record.createdAt
+          }
+        }
+      }
+    }
+  }
+
+  return lastPrefix
+}
+
+// 从 lastRecord 继承设备信息（继承每个设备的启用状态）
+function inheritFromLastRecord() {
+  // 处理每个设备
   for (let i = 0; i < equipmentList.length; i++) {
-    tryGenerateFileCode(i)
+    const eq = equipmentList[i]
+    
+    // 如果有上一条记录，继承启用状态
+    if (lastRecord.value?.equipment) {
+      const lastEq = lastRecord.value.equipment.find(e => e.label === eq.label)
+      if (lastEq) {
+        eq.enabled = lastEq.enabled
+        
+        if (eq.enabled) {
+          eq.type = lastEq.type
+          eq.prefix = lastEq.prefix
+          eq.shotSize = lastEq.shotSize || ''
+        }
+      }
+    }
+    
+    // 只要设备启用，就根据历史记录中同标识+同前缀的最大文件名+1
+    if (eq.enabled && eq.label && eq.prefix) {
+      const lastFileName = getLastFileNameForDevice(eq.label, eq.prefix)
+      eq.fileName = String(parseInt(lastFileName || '0', 10) + 1).padStart(3, '0')
+      eq.fileCode = ''
+      eq.changeCard = false
+      tryGenerateFileCode(i)
+    }
   }
 }
 
@@ -518,9 +653,6 @@ const changeCardForm = reactive({ newPrefix: '' })
 const duplicateDialogVisible = ref(false)
 const duplicateFileCodes = ref<string[]>([])
 
-/**
- * 上一条记录（用于自动填充 + 摘要展示）
- */
 // 预设
 const actorPresets = computed<string[]>(() => {
   const project = store.getProjects().find(p => p.id === props.projectId)
@@ -561,7 +693,6 @@ function getProject(): Project | undefined {
 function filteredBindings(type: string) {
   const project = getProject()
   if (!project) return []
-  // 根据设备类型过滤：摄像机 或 录音设备
   return (project.cameraBindings ?? []).filter(b => b.type === type)
 }
 
@@ -569,7 +700,6 @@ function availablePrefixes(eq: EquipmentRecord): string[] {
   const project = getProject()
   if (!project) return []
   const binding = (project.cameraBindings ?? []).find(b => b.label === eq.label)
-  // prefixes 是逗号分隔的字符串，需要 split
   if (!binding?.prefixes) return []
   return binding.prefixes.split(',').map(s => s.trim()).filter(Boolean)
 }
@@ -596,11 +726,10 @@ function confirmAddPrefix() {
     ElMessage.warning('请输入前缀名称')
     return
   }
-  
+
   const success = addPrefixToBinding(props.projectId, addPrefixTargetLabel.value, addPrefixForm.newPrefix.trim())
   if (success) {
     ElMessage.success(`已为「${addPrefixTargetLabel.value}」添加前缀「${addPrefixForm.newPrefix.trim()}」`)
-    // 自动选中新添加的前缀
     if (addPrefixTargetEquipmentIndex.value >= 0) {
       equipmentList[addPrefixTargetEquipmentIndex.value].prefix = addPrefixForm.newPrefix.trim()
       tryGenerateFileCode(addPrefixTargetEquipmentIndex.value)
@@ -621,11 +750,18 @@ function onEquipmentTypeChange(idx: number) {
 // 标识变化时尝试自动生成
 function onLabelChange(idx: number) {
   const eq = equipmentList[idx]
-  // 自动继承上一条的前缀
-  if (lastRecord.value?.equipment) {
+  
+  // 如果已经有 prefix，查找历史最大文件名并+1
+  if (eq.label && eq.prefix) {
+    const lastFileName = getLastFileNameForDevice(eq.label, eq.prefix)
+    eq.fileName = String(parseInt(lastFileName || '0', 10) + 1).padStart(3, '0')
+  } else if (lastRecord.value?.equipment) {
     const prevEq = lastRecord.value.equipment.find(e => e.label === eq.label)
     if (prevEq?.prefix) {
       eq.prefix = prevEq.prefix
+      // 查找历史最大文件名并+1
+      const lastFileName = getLastFileNameForDevice(eq.label, eq.prefix)
+      eq.fileName = String(parseInt(lastFileName || '0', 10) + 1).padStart(3, '0')
     }
   }
   tryGenerateFileCode(idx)
@@ -643,24 +779,27 @@ function tryGenerateFileCode(idx: number) {
 // 前缀变化处理（检测特殊值）
 function onPrefixChange(idx: number, prefix: string) {
   if (prefix === '__ADD_NEW_PREFIX__') {
-    // 重置为空，打开新建对话框
     equipmentList[idx].prefix = ''
     openAddPrefixDialog(equipmentList[idx])
   } else {
+    // 查找历史最大文件名并+1
+    const eq = equipmentList[idx]
+    if (eq.label && prefix) {
+      const lastFileName = getLastFileNameForDevice(eq.label, prefix)
+      eq.fileName = String(parseInt(lastFileName || '0', 10) + 1).padStart(3, '0')
+    }
     tryGenerateFileCode(idx)
   }
 }
 
 // 计算设备字母（A/B/C...）基于 label 中的机位字母
 function calcDeviceLetter(eq: EquipmentRecord): string {
-  // 如果 label 以字母开头（如 "A机位"、"B机位"），直接取第一个字母
   if (eq.label && /^[A-Z]/i.test(eq.label)) {
     return eq.label.charAt(0).toUpperCase()
   }
-  // 否则按 equipmentList 中的相对位置计算
   const sameType = equipmentList.filter(e => e.type === eq.type)
   const pos = sameType.indexOf(eq)
-  return String.fromCharCode(65 + pos) // A, B, C...
+  return String.fromCharCode(65 + pos)
 }
 
 // 文件名失去焦点时补零
@@ -681,31 +820,10 @@ function adjustFileName(idx: number, delta: number) {
   tryGenerateFileCode(idx)
 }
 
-// 添加设备
-function addEquipment() {
-  equipmentList.push({
-    id: uuidv4(),
-    type: 'camera',
-    label: '',
-    prefix: '',
-    shotSize: '',
-    fileName: '001',
-    fileCode: '',
-    changeCard: false,
-    remark: '',
-  })
-}
-
-// 删除设备
-function removeEquipment(idx: number) {
-  equipmentList.splice(idx, 1)
-}
-
 // 换卡
 function onChangeCard(idx: number) {
   const eq = equipmentList[idx]
   if (eq.changeCard) {
-    // 触发换卡流程
     changeCardIndex.value = idx
     changeCardCurrentLabel.value = eq.label || `设备${idx + 1}`
     changeCardForm.newPrefix = ''
@@ -716,11 +834,29 @@ function onChangeCard(idx: number) {
 function confirmChangeCard() {
   const eq = equipmentList[changeCardIndex.value]
   if (eq && changeCardForm.newPrefix) {
+    // 自动将新前缀添加到项目设置的机位绑定中
+    addPrefixToBinding(props.projectId, eq.label, changeCardForm.newPrefix)
     eq.prefix = changeCardForm.newPrefix
     eq.fileName = '001'
     tryGenerateFileCode(changeCardIndex.value)
   }
   changeCardDialogVisible.value = false
+  changeCardIndex.value = -1
+}
+
+// 换卡弹窗关闭时的处理（点击X号或取消）
+function onChangeCardDialogClose() {
+  // 取消勾选换卡选项
+  if (changeCardIndex.value >= 0 && changeCardIndex.value < equipmentList.length) {
+    equipmentList[changeCardIndex.value].changeCard = false
+  }
+  changeCardIndex.value = -1
+}
+
+// 取消换卡按钮
+function cancelChangeCard() {
+  changeCardDialogVisible.value = false
+  onChangeCardDialogClose()
 }
 
 /**
@@ -729,8 +865,9 @@ function confirmChangeCard() {
 function findDuplicateFileCodes(): string[] {
   const allRecords = store.getRecords(props.projectId)
   const duplicates: string[] = []
+  // 只检查启用的设备
   for (const eq of equipmentList) {
-    if (!eq.fileCode) continue
+    if (!eq.enabled || !eq.fileCode) continue
     const match = allRecords.find(r =>
       r.id !== props.record?.id && r.equipment?.some(e => e.fileCode === eq.fileCode)
     )
@@ -746,25 +883,99 @@ function findDuplicateFileCodes(): string[] {
  */
 async function doSave() {
   const projectName = store.getProjectName(props.projectId)
+  // 只保存启用的设备
+  const enabledEquipment = equipmentList.filter(eq => eq.enabled)
   const payload = {
     ...form,
     projectName,
-    equipment: JSON.parse(JSON.stringify(equipmentList)),
+    equipment: JSON.parse(JSON.stringify(enabledEquipment)),
   }
   if (isEdit.value && props.record) {
     store.updateRecord(props.record.id, payload)
   } else {
     store.addRecord(payload as any)
   }
-  
-  // 显示保存成功提示
-  ElMessage.success('保存成功！')
-  
-  // 滚动到页面顶部
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-  
+
+  // 新建模式下，重新初始化表单数据（条数和文件名+1）
+  if (!isEdit.value) {
+    // 保存当前场景号和镜号
+    const savedSceneNumber = form.sceneNumber
+    const savedShotNumber = form.shotNumber
+
+    // 更新 lastRecord 为刚刚保存的记录
+    lastRecord.value = store.getLastRecord(props.projectId)
+
+    // 重置表单字段
+    form.status = 'passed'
+    form.actors = ''
+    form.directorNote = ''
+    form.cameraNote = ''
+    form.note = ''
+
+    // 保存当前设备的启用状态
+    const currentEnabledStatus = equipmentList.map(eq => ({ label: eq.label, enabled: eq.enabled }))
+    
+    // 重新从项目绑定初始化设备（保持启用状态）
+    initEquipmentFromBindings()
+    
+    // 恢复设备的启用状态
+    for (const eq of equipmentList) {
+      const savedStatus = currentEnabledStatus.find(s => s.label === eq.label)
+      if (savedStatus) {
+        eq.enabled = savedStatus.enabled
+      }
+    }
+    
+    // 继承上一条记录中启用的设备信息（文件名+1）
+    if (lastRecord.value?.equipment) {
+      for (let i = 0; i < equipmentList.length; i++) {
+        const eq = equipmentList[i]
+        if (!eq.enabled) continue // 只处理启用的设备
+        
+        const lastEq = lastRecord.value.equipment.find(e => e.label === eq.label)
+        if (lastEq) {
+          eq.type = lastEq.type
+          eq.prefix = lastEq.prefix
+          eq.shotSize = lastEq.shotSize || ''
+          const lastFileName = getLastFileNameForDevice(eq.label, eq.prefix)
+          eq.fileName = String(parseInt(lastFileName || '0', 10) + 1).padStart(3, '0')
+          eq.fileCode = ''
+          eq.changeCard = false
+          tryGenerateFileCode(i)
+        }
+      }
+    }
+
+    // 条数+1（如果场景号和镜号相同）
+    if (savedSceneNumber === lastRecord.value?.sceneNumber && savedShotNumber === lastRecord.value?.shotNumber) {
+      form.takeCount = lastRecord.value.takeCount + 1
+    } else {
+      form.takeCount = 1
+    }
+  }
+
+  // 滚动到顶部
+  nextTick(() => {
+    const el = document.querySelector('.main-content') || document.documentElement
+    el.scrollTo({ top: 0, behavior: 'instant' })
+  })
+
+  // 更明显的提示
+  ElNotification({
+    title: '保存成功',
+    message: '场记记录已保存，可继续添加新记录',
+    type: 'success',
+    duration: 3000,
+    position: 'top-right'
+  })
+
   emit('saved')
   clearFormStorage()
+
+  // 聚焦到场景号输入框（需要延迟等待 DOM 更新）
+  setTimeout(() => {
+    sceneNumberInput.value?.focus()
+  }, 100)
 }
 
 /**
@@ -774,7 +985,6 @@ async function handleSubmit() {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
 
-  // 检查文件编码重复
   const dups = findDuplicateFileCodes()
   if (dups.length > 0) {
     duplicateFileCodes.value = dups
@@ -799,7 +1009,8 @@ function handleReset() {
   form.sceneType = 'int'
   form.timeOfDay = 'day'
   form.soundType = 'none'
-  equipmentList.splice(0, equipmentList.length)
+  // 重置时重新从项目绑定初始化设备
+  initEquipmentFromBindings()
   clearFormStorage()
 }
 
@@ -819,8 +1030,6 @@ watch(
   },
   { deep: true }
 )
-
-
 </script>
 
 <style scoped>
@@ -853,6 +1062,13 @@ watch(
 }
 .equipment-row:last-child {
   border-bottom: none;
+}
+.equipment-row.disabled-row {
+  background-color: #f5f7fa;
+  opacity: 0.7;
+}
+.disabled-text {
+  color: #909399;
 }
 .checkbox-col-inline {
   display: flex;
@@ -1005,3 +1221,7 @@ watch(
   height: 24px;
 }
 </style>
+
+
+
+

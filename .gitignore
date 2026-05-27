@@ -1,33 +1,36 @@
 # Dependencies
-node_modules/
-package-lock.json
+node_modules
+.pnp
+.pnp.js
 
-# Build outputs
-dist/
-release/
-out/
-build/
+# Build
+dist
+dist-ssr
+*.local
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # OS
-Thumbs.db
-Desktop.ini
 .DS_Store
+Thumbs.db
 
 # Logs
+logs
 *.log
 npm-debug.log*
+
+# Testing
+coverage
 
 # Environment
 .env
 .env.local
 .env.*.local
-
-# Temp files
-*.tmp
-*.cache

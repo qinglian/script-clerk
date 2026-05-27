@@ -1,37 +1,39 @@
 export interface EquipmentRecord {
-  /** å”¯ä¸€ IDï¼ˆå‰ç«¯ç”Ÿæˆï¼Œç”¨äº v-for keyï¼‰ */
+  /** Î¨Ò» ID£¨Ç°¶ËÉú³É£¬ÓÃÓÚ v-for key£© */
   id: string
-  /** è®¾å¤‡ç±»å‹: camera | audio */
+  /** Éè±¸ÀàĞÍ: camera | audio */
   type: 'camera' | 'audio'
-  /** è®¾å¤‡æ ‡è¯†ï¼Œé€‰æ‹©é¡¹ç›®æœºä½ç»‘å®šä¸­çš„æ ‡è¯† */
+  /** Éè±¸±êÊ¶£¬Ñ¡ÔñÏîÄ¿»úÎ»°ó¶¨ÖĞµÄ±êÊ¶ */
   label: string
-  /** æ–‡ä»¶åå‰ç¼€ï¼Œå‹¾é€‰æœºä½ç»‘å®šä¸­è¯¥æœºä½è®¾ç½®çš„æ–‡ä»¶åå‰ç¼€ */
+  /** ÎÄ¼şÃûÇ°×º£¬¹´Ñ¡»úÎ»°ó¶¨ÖĞ¸Ã»úÎ»ÉèÖÃµÄÎÄ¼şÃûÇ°×º */
   prefix: string
-  /** æ–‡ä»¶ç¼–ç ï¼Œæ ¼å¼ï¼š{è®¾å¤‡å­—æ¯}-{æ–‡ä»¶åå‰ç¼€}{æ–‡ä»¶å}ï¼Œå¦‚ A-C001 */
+  /** ÎÄ¼ş±àÂë£¬¸ñÊ½£º{Éè±¸×ÖÄ¸}-{ÎÄ¼şÃûÇ°×º}{ÎÄ¼şÃû}£¬Èç A-C001 */
   fileCode: string
-  /** æ–‡ä»¶åï¼ˆè¾“å…¥æ•°å­—è‡ªåŠ¨è¡¥é›¶ä¸ºä¸‰ä½ï¼Œå¦‚ 1â†’001ï¼‰ */
+  /** ÎÄ¼şÃû£¨ÊäÈëÊı×Ö×Ô¶¯²¹ÁãÎªÈıÎ»£¬Èç 1¡ú001£© */
   fileName: string
-  /** æœºä½æ™¯åˆ«ï¼ˆä»…æ‘„åƒæœºï¼‰ï¼Œå¦‚ å…¨æ™¯/ä¸­æ™¯/è¿‘æ™¯/ç‰¹å†™ */
+  /** »úÎ»¾°±ğ£¨½öÉãÏñ»ú£©£¬Èç È«¾°/ÖĞ¾°/½ü¾°/ÌØĞ´ */
   shotSize: string
-  /** å¤‡æ³¨ */
+  /** ±¸×¢ */
   remark: string
-  /** æ¢å¡æ ‡è®°ï¼ˆæ‘„åƒæœºè®¾å¤‡ï¼‰ï¼šå‹¾é€‰åéœ€è¦æ–°å»ºå‰ç¼€ï¼Œæ–‡ä»¶åä»001é‡æ–°å¼€å§‹ */
+  /** »»¿¨±ê¼Ç£¨ÉãÏñ»úÉè±¸£©£º¹´Ñ¡ºóĞèÒªĞÂ½¨Ç°×º£¬ÎÄ¼şÃû´Ó001ÖØĞÂ¿ªÊ¼ */
   changeCard?: boolean
+  /** ÆôÓÃ±ê¼Ç£º¿ØÖÆ¸Ã»úÎ»ÊÇ·ñ²ÎÓë±£´æ */
+  enabled?: boolean
 }
 
-/** æœºä½ç»‘å®šï¼šæœºä½æ ‡è¯† â†’ æ–‡ä»¶åå‰ç¼€æ˜ å°„ */
+/** »úÎ»°ó¶¨£º»úÎ»±êÊ¶ ¡ú ÎÄ¼şÃûÇ°×ºÓ³Éä */
 export interface CameraBinding {
-  /** å”¯ä¸€ ID */
+  /** Î¨Ò» ID */
   id: string
-  /** æœºä½æ ‡è¯†ï¼Œå¦‚ Aæœºä½ / Bæœºä½ */
+  /** »úÎ»±êÊ¶£¬Èç A»úÎ» / B»úÎ» */
   label: string
-  /** æ–‡ä»¶åå‰ç¼€ï¼Œå¦‚ C / Dï¼Œæ”¯æŒå¤šä¸ªé€—å·åˆ†éš” */
+  /** ÎÄ¼şÃûÇ°×º£¬Èç C / D£¬Ö§³Ö¶à¸ö¶ººÅ·Ö¸ô */
   prefixes: string
-  /** è®¾å¤‡ç±»å‹ */
+  /** Éè±¸ÀàĞÍ */
   type: 'camera' | 'audio'
 }
 
-/** é¢„è®¾é¡¹ï¼šç”¨äºæ¼”å‘˜ã€å¤‡æ³¨ç­‰å­—æ®µçš„å¿«æ·é€‰æ‹© */
+/** Ô¤ÉèÏî£ºÓÃÓÚÑİÔ±¡¢±¸×¢µÈ×Ö¶ÎµÄ¿ì½İÑ¡Ôñ */
 export interface PresetItem {
   id: string
   category: 'actors' | 'directorNote' | 'cameraNote' | 'note'
@@ -43,37 +45,37 @@ export interface ScriptRecord {
   projectId: string
   projectName: string
 
-  // åœºæ™¯ä¿¡æ¯
+  // ³¡¾°ĞÅÏ¢
   sceneNumber: string
   sceneType: 'int' | 'ext'
   timeOfDay: 'day' | 'night'
   sceneDesc: string
 
-  // é•œå·ä¿¡æ¯
+  // ¾µºÅĞÅÏ¢
   shotNumber: string
-  /** æ¡æ•°ç¼–å·ï¼ˆéæ•°é‡ï¼‰ï¼ŒåŒåœºæ™¯+åŒé•œå·æ—¶è‡ªåŠ¨ç´¯åŠ  1,2,3... */
+  /** ÌõÊı±àºÅ£¨·ÇÊıÁ¿£©£¬Í¬³¡¾°+Í¬¾µºÅÊ±×Ô¶¯ÀÛ¼Ó 1,2,3... */
   takeCount: number
 
-  // æ‹æ‘„ä¿¡æ¯
+  // ÅÄÉãĞÅÏ¢
   status: 'passed' | 'ng' | 'retake'
-  /** å£°éŸ³ç±»å‹ï¼šæ—  / OSç”»å¤–éŸ³ / VOæ—ç™½ï¼ˆå•é€‰ï¼‰ */
+  /** ÉùÒôÀàĞÍ£ºÎŞ / OS»­ÍâÒô / VOÅÔ°×£¨µ¥Ñ¡£© */
   soundType: 'none' | 'os' | 'vo'
   directorNote: string
   cameraNote: string
   note: string
 
-  // æ¼”å‘˜ä¿¡æ¯
+  // ÑİÔ±ĞÅÏ¢
   actors: string
 
-  // æ—¶é—´ä¿¡æ¯
+  // Ê±¼äĞÅÏ¢
   date: string
   startTime: string
   endTime: string
 
-  // è®¾å¤‡ä¸æ–‡ä»¶ç¼–ç ï¼ˆå¤šæœºä½ + å½•éŸ³è®¾å¤‡ï¼‰
+  // Éè±¸ÓëÎÄ¼ş±àÂë£¨¶à»úÎ» + Â¼ÒôÉè±¸£©
   equipment: EquipmentRecord[]
 
-  // å…ƒæ•°æ®
+  // ÔªÊı¾İ
   createdAt: string
   updatedAt: string
 }
@@ -83,9 +85,9 @@ export interface Project {
   name: string
   director: string
   scriptSupervisor: string
-  /** æœºä½ç»‘å®šé…ç½® */
+  /** »úÎ»°ó¶¨ÅäÖÃ */
   cameraBindings: CameraBinding[]
-  /** é¢„è®¾é…ç½® */
+  /** Ô¤ÉèÅäÖÃ */
   presets: PresetItem[]
   createdAt: string
 }
@@ -107,4 +109,8 @@ export interface AppData {
   projects: Project[]
   records: ScriptRecord[]
   currentProjectId: string | null
+  /** ±¸·İÊ±¼ä£¨ÄÚ²¿Ê¹ÓÃ£© */
+  _backupTime?: string
+  /** ±¸·İÀàĞÍ£¨ÄÚ²¿Ê¹ÓÃ£© */
+  _backupType?: string
 }
