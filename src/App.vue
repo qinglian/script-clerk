@@ -128,7 +128,7 @@ async function handleInstallApp() {
     window.open(`${basePath}manifest.json`, '_blank')
     ElMessage.info('请在浏览器菜单中选择"添加到主屏幕"或"安装"')
   }
-})
+}
 
 function onProjectChange(id: string) {
   currentProjectId.value = id
