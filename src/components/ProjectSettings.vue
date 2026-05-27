@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="project-settings">
     <el-card class="settings-card">
       <template #header><span>⚙️ 机位绑定</span></template>
@@ -153,13 +153,13 @@ onMounted(() => {
 })
 
 function addBinding() {
-  addCameraBinding(props.projectId, { type: 'camera', label: '', prefixes: '' })
-  bindings.value = getCameraBindings(props.projectId)
+  const newB = addCameraBinding(props.projectId, { type: 'camera', label: '', prefixes: '' })
+  bindings.value.push(newB)
 }
 
 function removeBinding(id: string) {
   removeCameraBinding(props.projectId, id)
-  bindings.value = getCameraBindings(props.projectId)
+  bindings.value = bindings.value.filter(b => b.id !== id)
 }
 
 function saveBindings() {
@@ -171,14 +171,14 @@ function saveBindings() {
 
 function addPresetItem(category: PresetItem['category'], value: string) {
   if (!value) return
-  addPresetToStore(props.projectId, category, value)
-  allPresets.value = getPresets(props.projectId)
+  const newP = addPresetToStore(props.projectId, category, value)
+  allPresets.value.push(newP)
   ElMessage.success('预设已添加')
 }
 
 function removePreset(id: string) {
   removePresetFromStore(props.projectId, id)
-  allPresets.value = getPresets(props.projectId)
+  allPresets.value = allPresets.value.filter(p => p.id !== id)
 }
 </script>
 
