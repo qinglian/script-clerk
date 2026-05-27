@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="script-list">
     <!-- 工具栏 -->
     <div class="toolbar">
@@ -121,33 +121,19 @@
           </div>
         </div>
         
-        <!-- 中间设备信息：按项目绑定顺序固定显示 -->
-        <div class="card-equipment" v-if="projectBindings.length > 0">
+        <!-- 中间设备信息：每个设备独立显示 -->
+        <div class="card-equipment" v-if="row.equipment && row.equipment.length > 0">
           <div class="equipment-label">设备文件编码</div>
           <div class="equipment-columns">
-            <div v-for="binding in projectBindings" :key="binding.id" class="equipment-column">
-              <template v-if="getEquipmentByLabel(row, binding.label)">
-                <el-tag
-                  size="small"
-                  :type="getEquipmentByLabel(row, binding.label).type === 'camera' ? 'primary' : 'success'"
-                  :effect="getEquipmentByLabel(row, binding.label).changeCard ? 'dark' : 'plain'"
-                  :class="{ 'change-card-tag': getEquipmentByLabel(row, binding.label).changeCard }"
-                >
-                  {{ getEquipmentByLabel(row, binding.label).type === 'camera' ? '🎥' : '🎤' }} {{ getEquipmentByLabel(row, binding.label).fileCode }}
-                </el-tag>
-                <el-tag
-                  v-if="getEquipmentByLabel(row, binding.label).changeCard"
-                  size="small"
-                  type="danger"
-                  effect="dark"
-                  class="change-card-badge"
-                >
-                  🔄 换卡
-                </el-tag>
-              </template>
-              <template v-else>
-                <span class="text-muted">-</span>
-              </template>
+            <div v-for="eq in row.equipment" :key="eq.id" class="equipment-column">
+              <el-tag
+                size="small"
+                :type="eq.type === 'camera' ? 'primary' : 'success'"
+                :effect="eq.changeCard ? 'dark' : 'plain'"
+                :class="{ 'change-card-tag': eq.changeCard }"
+              >
+                {{ eq.type === 'camera' ? '🎥' : '🎤' }} {{ eq.fileCode }}{{ eq.changeCard ? ' 🔄' : '' }}
+              </el-tag>
             </div>
           </div>
         </div>
@@ -251,35 +237,26 @@
           </template>
         </el-table-column>
         
-        <!-- 固定设备列（基于项目绑定） -->
+        <!-- 动态设备列 -->
         <el-table-column 
-          v-for="binding in projectBindings" 
-          :key="binding.id"
-          :label="binding.label"
+          v-for="colIdx in maxDevices" 
+          :key="colIdx - 1"
+          :label="`设备${colIdx}`"
           min-width="140"
         >
           <template #default="{ row }">
-            <div v-if="getEquipmentByLabel(row, binding.label)" @dblclick.stop="openEquipmentEdit(row, row.equipment.findIndex((e: any) => e.label === binding.label))">
+            <div v-if="row.equipment && row.equipment[colIdx - 1]" @dblclick.stop="openEquipmentEdit(row, colIdx - 1)">
               <el-tag
                 size="small"
-                :type="getEquipmentByLabel(row, binding.label).type === 'camera' ? 'primary' : 'success'"
-                :effect="getEquipmentByLabel(row, binding.label).changeCard ? 'dark' : 'plain'"
+                :type="row.equipment[colIdx - 1].type === 'camera' ? 'primary' : 'success'"
+                :effect="row.equipment[colIdx - 1].changeCard ? 'dark' : 'plain'"
                 class="editable-cell equipment-tag"
               >
-                {{ getEquipmentByLabel(row, binding.label).type === 'camera' ? '🎥' : '🎤' }} {{ getEquipmentByLabel(row, binding.label).fileCode }}
+                {{ row.equipment[colIdx - 1].type === 'camera' ? '🎥' : '🎤' }} {{ row.equipment[colIdx - 1].fileCode }}
               </el-tag>
-              <el-tag
-                v-if="getEquipmentByLabel(row, binding.label).changeCard"
-                size="small"
-                type="danger"
-                effect="dark"
-                class="change-card-badge"
-              >
-                🔄 换卡
-              </el-tag>
-              <div class="equipment-meta" v-if="getEquipmentByLabel(row, binding.label).shotSize || getEquipmentByLabel(row, binding.label).remark">
-                <span v-if="getEquipmentByLabel(row, binding.label).shotSize" class="meta-text">{{ getEquipmentByLabel(row, binding.label).shotSize }}</span>
-                <span v-if="getEquipmentByLabel(row, binding.label).remark" class="meta-text">{{ getEquipmentByLabel(row, binding.label).remark }}</span>
+              <div class="equipment-meta" v-if="row.equipment[colIdx - 1].shotSize || row.equipment[colIdx - 1].remark">
+                <span v-if="row.equipment[colIdx - 1].shotSize" class="meta-text">{{ row.equipment[colIdx - 1].shotSize }}</span>
+                <span v-if="row.equipment[colIdx - 1].remark" class="meta-text">{{ row.equipment[colIdx - 1].remark }}</span>
               </div>
             </div>
             <span v-else class="text-muted">-</span>
@@ -454,19 +431,6 @@ const props = defineProps<{
   projectId: string | null
 }>()
 
-// 获取项目设备绑定（用于固定设备列）
-const projectBindings = computed(() => {
-  if (!props.projectId) return []
-  const project = getProject(props.projectId)
-  return project?.cameraBindings || []
-})
-
-// 根据设备标签获取记录中对应的设备
-function getEquipmentByLabel(row: any, label: string) {
-  if (!row.equipment || row.equipment.length === 0) return null
-  return row.equipment.find((e: any) => e.label === label) || null
-}
-
 // 不再需要 emit edit
 
 // 搜索和筛选
@@ -542,7 +506,11 @@ const filteredRecords = computed(() => {
 
 // 设备信息已在模板中直接遍历 row.equipment 显示
 
-// 设备列现在基于项目绑定固定显示
+// 计算最大设备数（用于动态生成设备列）
+const maxDevices = computed(() => {
+  if (!filteredRecords.value || filteredRecords.value.length === 0) return 0
+  return Math.max(...filteredRecords.value.map(r => r.equipment?.length || 0))
+})
 
 function countByStatus(status: string): number {
   return filteredRecords.value.filter(r => r.status === status).length
@@ -641,6 +609,12 @@ const equipmentForm = ref<EquipmentRecord | null>(null)
 const editingRecordId = ref<string | null>(null)
 const editingEquipmentIndex = ref<number>(-1)
 
+// 获取当前项目的设备绑定
+const projectBindings = computed<CameraBinding[]>(() => {
+  if (!props.projectId) return []
+  const project = getProject(props.projectId)
+  return project?.cameraBindings || []
+})
 
 // 根据设备类型过滤可用的绑定
 const availableBindings = computed<CameraBinding[]>(() => {
@@ -998,17 +972,6 @@ function confirmAddPrefix() {
   border-color: transparent !important;
 }
 
-.change-card-badge {
-  margin-left: 4px;
-  font-weight: bold;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
 /* 可编辑单元格 */
 .editable-cell {
   cursor: pointer;
@@ -1045,4 +1008,3 @@ function confirmAddPrefix() {
   font-weight: 500;
 }
 </style>
-
