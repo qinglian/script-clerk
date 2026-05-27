@@ -178,9 +178,7 @@ initStorage()
 
 > ⚠️ **注意**: Firefox 和 Safari 暂不支持 File System Access API，但仍可使用 localStorage 模式。
 
-## 📄 许可证
 
-MIT License
 
 ---
 
