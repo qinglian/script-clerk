@@ -4,7 +4,6 @@ import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import App from './App.vue'
-import './assets/main.css'
 
 // 注册 Service Worker
 const basePath = import.meta.env.BASE_URL || '/'
